@@ -1,0 +1,46 @@
+***********************************README FILE for executing the PageRank code************************************************
+
+1. The first MapReduce task parses the xml file using the pattern given in the FAQ and extracts the <title> and <text> contents.
+
+2. The second MR task calculates the inlinks for the docs.
+
+3. The third MR task calculates the outlinks for each of the page.
+
+4. The fourth MR task is the calculation of PageRank using the outlinks.
+
+5. After calculating the PageRank, the fifth task sorts the values in descending order.
+
+6. The additional task I chose is to find the inverted index. I take the parsed xml file( output of the first task). Then I first take the words from the title and add the document for that word in an other ArrayList<String>. Basically I have two ArrayLists, one having all the words in the xml and the other having the set of docs for that word. So the size of both the lists are the same.
+
+For eg: 
+The output would look like
+
+apple==!==title1+++++title2
+bee==!==title4+++++title5+++++title10
+car==!==title3
+
+7. Steps for executing the code
+
+i. Compile
+javac -cp /usr/lib/hadoop/*:/usr/lib/hadoop-mapreduce/* Downloads/PageRank.java -d build -Xlint
+
+ii. Create .jar
+jar -cvf PageRank.jar -C build/ .
+
+iii. Copy your input file to ~/Downloads/pagerank. Then put the file to hadoop fs.
+hadoop fs -put ~/Downloads/pagerank /user/cloudera/pagerank
+
+iv. Run the program, specifying the input and output directory as an command line argument
+hadoop jar PageRank.jar org.myorg.PageRank /user/cloudera/pagerank/pagerank /user/cloudera/pagerank/output
+
+v. Upon completion of the program, check for the sorted rank
+hadoop fs -cat /user/cloudera/pagerank/output/output/link/rank/sort/*
+
+vi. All the other files will be deleted
+
+vii. The inverted index can be found here.
+hadoop fs -cat /user/cloudera/pagerank/output/output/link/rank/invertedindex/
+
+8. Idea for convergence is to check the current page rank and the previous rank. If the iteration is more than 1, check the i-1 and the ith iteration by passing the i-1 th iteration to another mapper class and recalculate the ith pagerank value. If they are the same, write a flag value to false to a file. 
+
+P.S The value of this file must be read at the beginning of every iteration and must be set to true initially.
